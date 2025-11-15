@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  # --- WEB SERVICE (PHP/Apache) ---
+  web:
+    # Builds the custom image defined in Dockerfile.web
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    container_name: snippet_tool_web
+    ports:
+      # Map host port 8080 to container port 80
+      - "8080:80"
+    volumes:
+      # Bind mount the source code for easy development/testing
+      - ./src:/var/www/html/
+    # Ensure the web container depends on the db container being healthy
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Pass database config as environment variables to PHP (Best Practice)
+      DB_HOST: db # IMPORTANT: Use the service name for networking
+      DB_NAME: devops_snippet_db
+      DB_USER: user
+      DB_PASSWORD: password123
+
+  # --- DATABASE SERVICE (MySQL) ---
+  db:
+    image: mysql:8.0
+    container_name: snippet_tool_db
+    environment:
+      # Standard MySQL environment variables for initial setup
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: devops_snippet_db
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password123
+    volumes:
+      # MANDATORY: Persistent volume for database data
+      - db_data:/var/lib/mysql
+
+      - ./src/setup.sql:/docker-entrypoint-initdb.d/setup.sql
+    # Healthcheck configuration (critical for 'depends_on' above)
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+
+volumes:
+  # Define the named volume for database persistence
+  db_data:
+    driver: local

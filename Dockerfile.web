@@ -1,0 +1,19 @@
+# Use a lean base image with PHP 8.2 and Apache
+FROM php:8.2-apache
+
+# Install mysqli extension, which is required to connect to MySQL
+# The standard process is to enable Apache rewrites and then install the PHP extension.
+RUN a2enmod rewrite \
+    && docker-php-ext-install mysqli \
+    && docker-php-ext-enable mysqli
+
+# Set the working directory (already done by base image, but good practice)
+WORKDIR /var/www/html
+
+# The source code is mounted via docker-compose, so no COPY is needed here,
+# making the build faster and allowing for real-time code changes in development.
+
+# Expose port 80 (default for Apache)
+EXPOSE 80
+
+# Command to start Apache is inherited from the base image

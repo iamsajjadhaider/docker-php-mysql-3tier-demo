@@ -1,0 +1,10 @@
+# Use official MySQL 8.0 image
+FROM mysql:8.0
+
+# This Dockerfile is minimal because we leverage two key Docker features:
+# 1. The official image's entrypoint, which automatically runs SQL scripts
+#    mounted to /docker-entrypoint-initdb.d.
+# 2. Docker Compose volume mounting, which handles the persistence and script insertion.
+
+# No further instructions needed, as we rely on the official image entrypoint
+# and docker-compose volume mounting for the initial script.
